@@ -16,18 +16,19 @@ from datetime import datetime
 
 import streamlit as st
 
-# ต้องอยู่เป็นคำสั่งแรกสุดของ Streamlit
+# ต้องอยู่บรรทัดแรกสุด และห้ามมีเครื่องหมาย # ข้างหน้า
 st.set_page_config(
     page_title="Wine, Beer & Spirit Lab Master v4.3", 
     layout="wide", 
-    initial_sidebar_state="expanded" 
+    initial_sidebar_state="expanded" # บังคับให้กางออกเสมอ
 )
 
 
 # --- 1. การตั้งค่าหน้าจอและซ่อนเมนูที่รองรับทุกอุปกรณ์ (รวม MacBook M4) ---
+# --- แก้ไข CSS เพื่อ Fix Sidebar และรองรับ MacBook M4 ---
 st.markdown("""
     <style>
-    /* 1. ซ่อนปุ่มขีดสามขีดมุมขวาบน และแถบเครื่องมือ */
+    /* 1. ซ่อนเมนูขีดสามขีดและ Toolbar ขวาบน */
     #MainMenu {visibility: hidden;}
     [data-testid="stToolbar"] {display: none;}
     
@@ -35,25 +36,18 @@ st.markdown("""
     footer {visibility: hidden;}
     
     /* 3. จัดการ Header ให้โปร่งใส (ห้ามใช้ visibility: hidden หรือ height: 0) */
-    /* เพื่อให้ MacBook M4 ยังสามารถประมวลผลปุ่มเปิด Sidebar ได้ */
+    /* การใช้ visibility: hidden จะทำให้ระบบสัมผัสบน Mac ทำงานผิดพลาด */
     [data-testid="stHeader"] {
         background-color: rgba(0,0,0,0) !important;
         height: 3rem !important;
-        z-index: 99;
     }
 
-    /* 4. ปรับปุ่มเปิด Sidebar (>) ให้แสดงผลชัดเจนและกดติดง่าย */
-    [data-testid="stSidebarCollapseButton"] {
-        visibility: visible !important;
-        display: block !important;
-        background-color: #f0f2f6 !important;
-        border-radius: 8px !important;
-        margin-left: 10px !important;
-        top: 10px !important;
-        box-shadow: 0px 2px 5px rgba(0,0,0,0.1) !important;
+    /* 4. ปรับแต่ง Sidebar ให้ดูคงที่และสะอาด */
+    [data-testid="stSidebar"] {
+        border-right: 1px solid #e0e0e0;
     }
 
-    /* 5. ซ่อนปุ่มจัดการแอปมุมขวาล่าง */
+    /* 5. ซ่อนปุ่มจัดการแอปมุมขวาล่างที่กวนสายตา */
     .viewerBadge_container__1QS1n {display: none !important;}
     </style>
     """, unsafe_allow_html=True)
