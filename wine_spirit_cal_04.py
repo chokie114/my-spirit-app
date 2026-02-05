@@ -1952,37 +1952,43 @@ Lot Number: {q_lot}
             st.download_button("📊 Save Excel", data=csv_data, file_name=f"{rep_name}.csv")
 
         with pcol2:
-            # 📕 Save as PDF (Safe Import & Multi-platform Fix)
+            # 📕 Save as PDF (รองรับ fpdf2 และแก้ไขข้อผิดพลาดบนมือถือ/Windows)
             try:
+                # พยายามเรียกใช้ fpdf (แนะนำให้ใส่ fpdf2 ใน requirements.txt)
                 from fpdf import FPDF
                 pdf = FPDF()
                 pdf.add_page()
                 
-                # หากต้องการใช้ภาษาไทย ต้องมีไฟล์ฟอนต์ .ttf ใน GitHub และใช้บรรทัดล่างนี้:
-                # pdf.add_font('THSarabun', '', 'THSarabunNew.ttf', uni=True)
-                # pdf.set_font('THSarabun', '', 16)
-                
+                # ตั้งค่า Font พื้นฐาน (รองรับเฉพาะภาษาอังกฤษ/ตัวเลข หากไม่โหลด Font ไทยเพิ่ม)
                 pdf.set_font("Arial", size=11)
                 for line in report_txt.split('\n'):
-                    # แก้ไขเรื่อง Encoding: กรองอักษรที่ไม่ใช่ latin-1 ออกเพื่อป้องกัน Error บน Windows
+                    # กรองตัวอักษรไทยออกเพื่อป้องกัน PDF Crash (กรณีไม่ได้โหลด Unicode Font)
                     safe_line = line.encode('ascii', 'ignore').decode('ascii')
                     pdf.cell(200, 8, txt=safe_line, ln=True)
                 
-                # --- จุดที่แก้ไข: ตรวจสอบประเภทข้อมูลที่ output ออกมา ---
+                # --- ส่วนจัดการ Output เพื่อป้องกัน Invalid binary data format ---
                 raw_pdf_output = pdf.output(dest='S')
                 
-                if isinstance(raw_pdf_output, str):
-                    # ถ้าเป็น String (เช่นใน fpdf เวอร์ชันเก่า) ให้ encode เป็น latin-1 หรือ utf-8
+                # ตรวจสอบว่าเป็น bytearray (มักพบใน fpdf2 เวอร์ชันใหม่) หรือ bytes
+                if isinstance(raw_pdf_output, (bytes, bytearray)):
+                    pdf_bytes = bytes(raw_pdf_output)
+                elif isinstance(raw_pdf_output, str):
                     pdf_bytes = raw_pdf_output.encode('latin-1', errors='ignore')
                 else:
-                    # ถ้าเป็น Bytes อยู่แล้ว (เช่นใน fpdf2) ให้ใช้ได้เลย
                     pdf_bytes = raw_pdf_output
                 
-                st.download_button("📕 Save PDF", data=pdf_bytes, file_name=f"{rep_name}.pdf", mime="application/pdf")
+                st.download_button(
+                    label="📕 Save PDF",
+                    data=pdf_bytes,
+                    file_name=f"{rep_name}.pdf",
+                    mime="application/pdf"
+                )
                 
             except Exception as e:
-                st.error(f"PDF Error: {str(e)}")
-                st.info("💡 แนะนำให้ตรวจสอบว่าติดตั้ง 'fpdf2' ใน requirements.txt หรือยัง")
+                # แสดงข้อความ Error ที่เกิดขึ้นจริง
+                st.error(f"pdf error: {str(e)}")
+                # ข้อความแนะนำตามที่คุณต้องการ
+                st.info("💡 แนะนำให้ตรวจสอบว่าติดตั้ง 'fpdf2' ในไฟล์ **requirements.txt** บน GitHub หรือยัง")
 
         with pcol3:
             # 🖨️ Native Print (เรียกหน้าต่างพิมพ์ของเบราว์เซอร์)
