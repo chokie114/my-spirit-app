@@ -12,6 +12,18 @@ import streamlit.components.v1 as components
 import os
 from datetime import datetime
 
+import streamlit as st
+
+# โค้ดสำหรับซ่อน Main Menu และ Footer บางส่วน
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
 # --- ฟังก์ชันติดตามการเข้าใช้งาน (Usage Tracker) ---
 def track_usage(username="Anonymous"):
     log_file = "usage_log.csv"
