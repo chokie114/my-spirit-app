@@ -13,17 +13,16 @@ import streamlit.components.v1 as components
 import os
 from datetime import datetime
 
+
 import streamlit as st
 
-# โค้ดสำหรับซ่อน Main Menu และ Footer บางส่วน
-hide_st_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            header {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_st_style, unsafe_allow_html=True)
+# ต้องอยู่เป็นคำสั่งแรกสุดของ Streamlit
+st.set_page_config(
+    page_title="Wine, Beer & Spirit Lab Master v4.3", 
+    layout="wide", 
+    initial_sidebar_state="expanded" 
+)
+
 
 # --- 1. การตั้งค่าหน้าจอและซ่อนเมนูที่รองรับทุกอุปกรณ์ (รวม MacBook M4) ---
 # --- 1. ปรับปรุง CSS เพื่อรองรับ Android, iPad และ MacBook M4 ---
