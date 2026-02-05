@@ -25,32 +25,36 @@ st.set_page_config(
 
 
 # --- 1. การตั้งค่าหน้าจอและซ่อนเมนูที่รองรับทุกอุปกรณ์ (รวม MacBook M4) ---
-# --- แก้ไขปัญหา Sidebar สำหรับ MacBook M4 / macOS ---
 st.markdown("""
     <style>
-    /* 1. ซ่อนเฉพาะปุ่มเมนูขีดสามขีดและ Toolbar ขวาบน */
+    /* 1. ซ่อนปุ่มขีดสามขีดมุมขวาบน และแถบเครื่องมือ */
     #MainMenu {visibility: hidden;}
     [data-testid="stToolbar"] {display: none;}
     
     /* 2. ซ่อน Footer 'Made with Streamlit' */
     footer {visibility: hidden;}
     
-    /* 3. จัดการ Header ให้โปร่งใส (ห้ามใช้ display: none หรือ visibility: hidden) */
-    /* เพื่อให้ปุ่ม Sidebar ยังคงทำงานได้บน MacBook M4 */
+    /* 3. จัดการ Header ให้โปร่งใส (ห้ามใช้ visibility: hidden หรือ height: 0) */
+    /* เพื่อให้ MacBook M4 ยังสามารถประมวลผลปุ่มเปิด Sidebar ได้ */
     [data-testid="stHeader"] {
         background-color: rgba(0,0,0,0) !important;
         height: 3rem !important;
-        border-bottom: none !important;
+        z-index: 99;
     }
-    
-    /* 4. ปรับปุ่มเปิด Sidebar (>) ให้แสดงผลชัดเจนบนจอ Retina */
+
+    /* 4. ปรับปุ่มเปิด Sidebar (>) ให้แสดงผลชัดเจนและกดติดง่าย */
     [data-testid="stSidebarCollapseButton"] {
+        visibility: visible !important;
+        display: block !important;
         background-color: #f0f2f6 !important;
         border-radius: 8px !important;
-        margin-top: 5px !important;
-        box-shadow: 0px 2px 4px rgba(0,0,0,0.1) !important;
-        display: block !important;
+        margin-left: 10px !important;
+        top: 10px !important;
+        box-shadow: 0px 2px 5px rgba(0,0,0,0.1) !important;
     }
+
+    /* 5. ซ่อนปุ่มจัดการแอปมุมขวาล่าง */
+    .viewerBadge_container__1QS1n {display: none !important;}
     </style>
     """, unsafe_allow_html=True)
 
