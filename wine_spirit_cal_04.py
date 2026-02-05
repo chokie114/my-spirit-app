@@ -25,36 +25,32 @@ st.set_page_config(
 
 
 # --- 1. การตั้งค่าหน้าจอและซ่อนเมนูที่รองรับทุกอุปกรณ์ (รวม MacBook M4) ---
-# --- 1. ปรับปรุง CSS เพื่อรองรับ Android, iPad และ MacBook M4 ---
+# --- แก้ไขปัญหา Sidebar สำหรับ MacBook M4 / macOS ---
 st.markdown("""
     <style>
-    /* ซ่อนเฉพาะปุ่มเมนูขีดสามขีด (มุมขวาบน) และ Toolbar */
+    /* 1. ซ่อนเฉพาะปุ่มเมนูขีดสามขีดและ Toolbar ขวาบน */
     #MainMenu {visibility: hidden;}
     [data-testid="stToolbar"] {display: none;}
     
-    /* ซ่อน Footer ด้านล่าง */
+    /* 2. ซ่อน Footer 'Made with Streamlit' */
     footer {visibility: hidden;}
     
-    /* การจัดการ Header เพื่อให้ปุ่ม Sidebar ใน Android/มือถือ แสดงผลได้ */
+    /* 3. จัดการ Header ให้โปร่งใส (ห้ามใช้ display: none หรือ visibility: hidden) */
+    /* เพื่อให้ปุ่ม Sidebar ยังคงทำงานได้บน MacBook M4 */
     [data-testid="stHeader"] {
-        background-color: rgba(0,0,0,0) !important; /* ทำให้โปร่งใสแต่ไม่สั่งซ่อน */
+        background-color: rgba(0,0,0,0) !important;
         height: 3rem !important;
-        z-index: 99;
+        border-bottom: none !important;
     }
-
-    /* ปรับแต่งปุ่มกดเปิด Sidebar (ลูกศร > หรือ ขีดสามขีด) ให้เด่นชัดในมือถือ */
+    
+    /* 4. ปรับปุ่มเปิด Sidebar (>) ให้แสดงผลชัดเจนบนจอ Retina */
     [data-testid="stSidebarCollapseButton"] {
-        visibility: visible !important;
-        display: block !important;
-        background-color: #f0f2f6 !important; /* ใส่สีพื้นหลังให้อ่อนๆ จะได้เห็นชัด */
+        background-color: #f0f2f6 !important;
         border-radius: 8px !important;
-        margin-left: 10px !important;
-        top: 10px !important;
-        box-shadow: 0px 2px 5px rgba(0,0,0,0.1) !important;
+        margin-top: 5px !important;
+        box-shadow: 0px 2px 4px rgba(0,0,0,0.1) !important;
+        display: block !important;
     }
-
-    /* ซ่อน Viewer Badge มุมขวาล่าง */
-    .viewerBadge_container__1QS1n {display: none !important;}
     </style>
     """, unsafe_allow_html=True)
 
