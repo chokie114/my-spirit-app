@@ -25,27 +25,35 @@ hide_st_style = """
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
+# --- 1. การตั้งค่าหน้าจอและซ่อนเมนูที่รองรับทุกอุปกรณ์ (รวม MacBook M4) ---
 st.markdown("""
     <style>
-    /* ซ่อนเฉพาะปุ่มขีดสามขีดและ Toolbar ขวาบน */
+    /* ซ่อนปุ่มขีดสามขีด (Main Menu) และ Toolbar ด้านขวาบน */
     #MainMenu {visibility: hidden;}
     [data-testid="stToolbar"] {display: none;}
     
     /* ซ่อน Footer ด้านล่าง */
     footer {visibility: hidden;}
     
-    /* แก้ไขปัญหา Sidebar ในมือถือ: ซ่อนพื้นหลัง Header แต่ให้ปุ่มเปิดเมนูยังอยู่ */
-    header {
+    /* แก้ไขปัญหา Sidebar สำหรับ MacBook M4 และ macOS */
+    /* เราจะไม่ซ่อน header ทั้งหมด แต่จะทำให้มันโปร่งใสแทน เพื่อให้ปุ่ม Sidebar ยังทำงานได้ */
+    [data-testid="stHeader"] {
         background-color: rgba(0,0,0,0) !important;
-        height: 3rem !important;
+        color: #31333F !important;
     }
-    
-    /* ปรับแต่งปุ่มลูกศรเปิด Sidebar ให้เด่นขึ้นในมือถือ */
+
+    /* ปรับแต่งปุ่มลูกศร/ปุ่มเปิด Sidebar (>) ให้แสดงผลชัดเจนและกดง่าย */
     [data-testid="stSidebarCollapseButton"] {
-        background-color: #f0f2f6;
-        border-radius: 10px;
-        margin-top: 5px;
+        background-color: #f0f2f6 !important;
+        border-radius: 8px !important;
+        margin-top: 5px !important;
+        margin-left: 5px !important;
+        box-shadow: 0px 2px 4px rgba(0,0,0,0.1) !important;
+        display: block !important;
     }
+
+    /* พยายามซ่อนปุ่มมุมขวาล่างที่อาจรบกวนสายตา */
+    .viewerBadge_container__1QS1n {display: none !important;}
     </style>
     """, unsafe_allow_html=True)
 
