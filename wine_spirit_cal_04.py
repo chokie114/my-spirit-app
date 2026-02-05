@@ -26,33 +26,35 @@ hide_st_style = """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # --- 1. การตั้งค่าหน้าจอและซ่อนเมนูที่รองรับทุกอุปกรณ์ (รวม MacBook M4) ---
+# --- 1. ปรับปรุง CSS เพื่อรองรับ Android, iPad และ MacBook M4 ---
 st.markdown("""
     <style>
-    /* ซ่อนปุ่มขีดสามขีด (Main Menu) และ Toolbar ด้านขวาบน */
+    /* ซ่อนเฉพาะปุ่มเมนูขีดสามขีด (มุมขวาบน) และ Toolbar */
     #MainMenu {visibility: hidden;}
     [data-testid="stToolbar"] {display: none;}
     
     /* ซ่อน Footer ด้านล่าง */
     footer {visibility: hidden;}
     
-    /* แก้ไขปัญหา Sidebar สำหรับ MacBook M4 และ macOS */
-    /* เราจะไม่ซ่อน header ทั้งหมด แต่จะทำให้มันโปร่งใสแทน เพื่อให้ปุ่ม Sidebar ยังทำงานได้ */
+    /* การจัดการ Header เพื่อให้ปุ่ม Sidebar ใน Android/มือถือ แสดงผลได้ */
     [data-testid="stHeader"] {
-        background-color: rgba(0,0,0,0) !important;
-        color: #31333F !important;
+        background-color: rgba(0,0,0,0) !important; /* ทำให้โปร่งใสแต่ไม่สั่งซ่อน */
+        height: 3rem !important;
+        z-index: 99;
     }
 
-    /* ปรับแต่งปุ่มลูกศร/ปุ่มเปิด Sidebar (>) ให้แสดงผลชัดเจนและกดง่าย */
+    /* ปรับแต่งปุ่มกดเปิด Sidebar (ลูกศร > หรือ ขีดสามขีด) ให้เด่นชัดในมือถือ */
     [data-testid="stSidebarCollapseButton"] {
-        background-color: #f0f2f6 !important;
-        border-radius: 8px !important;
-        margin-top: 5px !important;
-        margin-left: 5px !important;
-        box-shadow: 0px 2px 4px rgba(0,0,0,0.1) !important;
+        visibility: visible !important;
         display: block !important;
+        background-color: #f0f2f6 !important; /* ใส่สีพื้นหลังให้อ่อนๆ จะได้เห็นชัด */
+        border-radius: 8px !important;
+        margin-left: 10px !important;
+        top: 10px !important;
+        box-shadow: 0px 2px 5px rgba(0,0,0,0.1) !important;
     }
 
-    /* พยายามซ่อนปุ่มมุมขวาล่างที่อาจรบกวนสายตา */
+    /* ซ่อน Viewer Badge มุมขวาล่าง */
     .viewerBadge_container__1QS1n {display: none !important;}
     </style>
     """, unsafe_allow_html=True)
@@ -1950,20 +1952,37 @@ Lot Number: {q_lot}
             st.download_button("📊 Save Excel", data=csv_data, file_name=f"{rep_name}.csv")
 
         with pcol2:
-            # 📕 Save as PDF (Safe Import)
+            # 📕 Save as PDF (Safe Import & Multi-platform Fix)
             try:
                 from fpdf import FPDF
                 pdf = FPDF()
                 pdf.add_page()
+                
+                # หากต้องการใช้ภาษาไทย ต้องมีไฟล์ฟอนต์ .ttf ใน GitHub และใช้บรรทัดล่างนี้:
+                # pdf.add_font('THSarabun', '', 'THSarabunNew.ttf', uni=True)
+                # pdf.set_font('THSarabun', '', 16)
+                
                 pdf.set_font("Arial", size=11)
                 for line in report_txt.split('\n'):
-                    # กรองตัวอักษรไทยออกชั่วคราว (เนื่องจาก PDF มาตรฐานไม่รองรับไทย)
-                    safe_line = line.encode('latin-1', 'ignore').decode('latin-1')
+                    # แก้ไขเรื่อง Encoding: กรองอักษรที่ไม่ใช่ latin-1 ออกเพื่อป้องกัน Error บน Windows
+                    safe_line = line.encode('ascii', 'ignore').decode('ascii')
                     pdf.cell(200, 8, txt=safe_line, ln=True)
-                pdf_bytes = pdf.output(dest='S').encode('latin-1')
-                st.download_button("📕 Save PDF", data=pdf_bytes, file_name=f"{rep_name}.pdf")
-            except ImportError:
-                st.info("💡 ติดตั้ง PDF: 'pip install fpdf'")
+                
+                # --- จุดที่แก้ไข: ตรวจสอบประเภทข้อมูลที่ output ออกมา ---
+                raw_pdf_output = pdf.output(dest='S')
+                
+                if isinstance(raw_pdf_output, str):
+                    # ถ้าเป็น String (เช่นใน fpdf เวอร์ชันเก่า) ให้ encode เป็น latin-1 หรือ utf-8
+                    pdf_bytes = raw_pdf_output.encode('latin-1', errors='ignore')
+                else:
+                    # ถ้าเป็น Bytes อยู่แล้ว (เช่นใน fpdf2) ให้ใช้ได้เลย
+                    pdf_bytes = raw_pdf_output
+                
+                st.download_button("📕 Save PDF", data=pdf_bytes, file_name=f"{rep_name}.pdf", mime="application/pdf")
+                
+            except Exception as e:
+                st.error(f"PDF Error: {str(e)}")
+                st.info("💡 แนะนำให้ตรวจสอบว่าติดตั้ง 'fpdf2' ใน requirements.txt หรือยัง")
 
         with pcol3:
             # 🖨️ Native Print (เรียกหน้าต่างพิมพ์ของเบราว์เซอร์)
