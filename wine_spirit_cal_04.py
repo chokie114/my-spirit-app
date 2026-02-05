@@ -1,3 +1,4 @@
+#st.set_page_config(page_title="Wine, Beer & Spirit Lab Master v4.3", layout="wide", initial_sidebar_state="expanded")
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -23,6 +24,30 @@ hide_st_style = """
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
+
+st.markdown("""
+    <style>
+    /* ซ่อนเฉพาะปุ่มขีดสามขีดและ Toolbar ขวาบน */
+    #MainMenu {visibility: hidden;}
+    [data-testid="stToolbar"] {display: none;}
+    
+    /* ซ่อน Footer ด้านล่าง */
+    footer {visibility: hidden;}
+    
+    /* แก้ไขปัญหา Sidebar ในมือถือ: ซ่อนพื้นหลัง Header แต่ให้ปุ่มเปิดเมนูยังอยู่ */
+    header {
+        background-color: rgba(0,0,0,0) !important;
+        height: 3rem !important;
+    }
+    
+    /* ปรับแต่งปุ่มลูกศรเปิด Sidebar ให้เด่นขึ้นในมือถือ */
+    [data-testid="stSidebarCollapseButton"] {
+        background-color: #f0f2f6;
+        border-radius: 10px;
+        margin-top: 5px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # --- ฟังก์ชันติดตามการเข้าใช้งาน (Usage Tracker) ---
 def track_usage(username="Anonymous"):
@@ -590,11 +615,16 @@ if show_reading:
         sample_temp = st.number_input("อุณหภูมิของตัวอย่าง (°C):", value=25.0, key="cat2_sample_t")
         calibrate_temp = st.number_input("อุณหภูมิที่ Hydrometer ปรับตั้งไว้ (Standard Temp):", value=20.0, key="cat2_cal_t")
 
-    # สูตรคำนวณการปรับแก้ SG ตามอุณหภูมิ
-    # CG = MG * ((1.00130346 - 0.000134722124 * T + 0.00000204052596 * T^2 - 0.00000000232820948 * T^3) / 
-    #           (1.00130346 - 0.000134722124 * TR + 0.00000204052596 * TR^2 - 0.00000000232820948 * TR^3))
+        # --- เพิ่มการตรวจสอบ Input Validation ---
+        if sample_temp > 40.0:
+            st.warning("⚠️ อุณหภูมิสูงเกิน 40°C: ความหนาแน่นของของเหลวอาจเปลี่ยนแปลงไม่เป็นเส้นตรง ค่าคำนวณอาจคลาดเคลื่อน")
+        elif sample_temp < 10.0:
+            st.warning("⚠️ อุณหภูมิต่ำกว่า 10°C: ความหนืดอาจส่งผลต่อการลอยตัวของ Hydrometer")
+
+    # ฟังก์ชันคำนวณการปรับแก้ SG ตามอุณหภูมิ (Polynomial 3rd order)
     def correct_sg(mg, t, tr):
         def density_formula(temp):
+            # สูตรคำนวณความหนาแน่นสัมพัทธ์ของน้ำที่อุณหภูมิต่างๆ
             return 1.00130346 - 0.000134722124 * temp + 0.00000204052596 * (temp**2) - 0.00000000232820948 * (temp**3)
         return mg * (density_formula(t) / density_formula(tr))
 
@@ -605,7 +635,7 @@ if show_reading:
             <div class="result-container">
                 <p class="highlight-label">ค่า SG ที่ปรับแก้แล้ว (Corrected SG)</p>
                 <p class="result-value">{corrected_sg:.3f}</p>
-                <p style="color: #7f8c8d; font-size: 14px;">(อ้างอิงอุณหภูมิปรับตั้ง {calibrate_temp}°C)</p>
+                <p style="color: #7f8c8d; font-size: 14px;">(คำนวณเทียบกับอุณหภูมิปรับตั้ง {calibrate_temp}°C)</p>
             </div>
         """, unsafe_allow_html=True)
     st.divider()
@@ -631,6 +661,11 @@ if show_abv_est:
         with c2:
             res = calculate_abv(og_sg_22, fg_sg_22, "SG", yeast_eff)
             st.markdown(f'<div class="result-container"><p>ประมาณการ ABV</p><p class="result-value">{res:.2f} %</p></div>', unsafe_allow_html=True)
+        # --- เพิ่มการตรวจสอบ Input Validation ---
+        if res > 15.0:
+            st.warning("⚠️ แอลกอฮอล์เกิน 15 % ABV : ค่าคำนวณอาจคลาดเคลื่อนจากความเป็นจริง เนื่องจากยีสต์อาจไม่สามารถทนทานได้")
+        elif res < 2.0:
+            st.warning("⚠️ แอลกอฮอล์ต่ำกว่า 2 % ABV: โอกาสการปนเปื้อนสูง ควรตรวจสอบความสะอาดของอุปกรณ์และวัตถุดิบ")
 
     # 2. Tab Brix
     with tab_brix:
@@ -641,6 +676,11 @@ if show_abv_est:
         with c2:
             res = calculate_abv(og_bx_22, fg_bx_22, "Brix", yeast_eff)
             st.markdown(f'<div class="result-container"><p>ประมาณการ ABV</p><p class="result-value">{res:.2f} %</p></div>', unsafe_allow_html=True)
+        # --- เพิ่มการตรวจสอบ Input Validation ---
+        if res > 15.0:
+            st.warning("⚠️ แอลกอฮอล์เกิน 15 % ABV : ค่าคำนวณอาจคลาดเคลื่อนจากความเป็นจริง เนื่องจากยีสต์อาจไม่สามารถทนทานได้")
+        elif res < 2.0:
+            st.warning("⚠️ แอลกอฮอล์ต่ำกว่า 2 % ABV: โอกาสการปนเปื้อนสูง ควรตรวจสอบความสะอาดของอุปกรณ์และวัตถุดิบ")
 
     # 3. Tab Baumé
     with tab_be:
@@ -651,6 +691,11 @@ if show_abv_est:
         with c2:
             res = calculate_abv(og_be_22, fg_be_22, "Baumé", yeast_eff)
             st.markdown(f'<div class="result-container"><p>ประมาณการ ABV</p><p class="result-value">{res:.2f} %</p></div>', unsafe_allow_html=True)
+        # --- เพิ่มการตรวจสอบ Input Validation ---
+        if res > 15.0:
+            st.warning("⚠️ แอลกอฮอล์เกิน 15 % ABV : ค่าคำนวณอาจคลาดเคลื่อนจากความเป็นจริง เนื่องจากยีสต์อาจไม่สามารถทนทานได้")
+        elif res < 2.0:
+            st.warning("⚠️ แอลกอฮอล์ต่ำกว่า 2 % ABV: โอกาสการปนเปื้อนสูง ควรตรวจสอบความสะอาดของอุปกรณ์และวัตถุดิบ")
 
     # 4. Tab Plato (สำหรับเบียร์)
     with tab_plato:
@@ -671,6 +716,11 @@ if show_abv_est:
                     <p style='font-size:12px; color:gray;'>เทียบเท่า SG: {og_sg_p:.3f} to {fg_sg_p:.3f}</p>
                 </div>
             """, unsafe_allow_html=True)
+                    # --- เพิ่มการตรวจสอบ Input Validation ---
+        if res > 15.0:
+            st.warning("⚠️ แอลกอฮอล์เกิน 15 % ABV : ค่าคำนวณอาจคลาดเคลื่อนจากความเป็นจริง เนื่องจากยีสต์อาจไม่สามารถทนทานได้")
+        elif res < 2.0:
+            st.warning("⚠️ แอลกอฮอล์ต่ำกว่า 2 % ABV: โอกาสการปนเปื้อนสูง ควรตรวจสอบความสะอาดของอุปกรณ์และวัตถุดิบ")
     st.divider()
 
 # --- 2.3 การคำนวณความขม (IBU Calculator - Tinseth Method) ---
@@ -2124,5 +2174,4 @@ if not any([show_temp, show_vol, show_conc, show_alc, show_reading, show_abv_est
     st.warning("⚠️ โปรดเลือกหมวดหมู่ที่ต้องการจาก Sidebar")
 
 # --- Footer ---
-st.sidebar.markdown("---")
 st.sidebar.caption("v4.3 | Wine, Beer, & Spirit Master®️ | Pro Monitoring Edition | By Chokchai Wanapu ©2026")
